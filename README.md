@@ -1,7 +1,7 @@
 # Fireworks
 
-A Pygame fireworks animation. Click in the window to launch a firework, and
-press `Esc` to exit.
+A Pygame fireworks animation with synthesized launch and explosion sound
+effects. Click in the window to launch a firework, and press `Esc` to exit.
 
 ## Run on Windows
 

@@ -1,11 +1,18 @@
 import pygame
 import random
 import math
+from array import array
 
 # ============================================================
 # INITIAL SETUP
 # ============================================================
 
+pygame.mixer.pre_init(
+    frequency=22050,
+    size=-16,
+    channels=1,
+    buffer=512
+)
 pygame.init()
 
 # Window dimensions
@@ -22,6 +29,78 @@ pygame.display.set_caption("Fireworks Show")
 
 # Controls the frame rate
 clock = pygame.time.Clock()
+
+# ============================================================
+# SOUND EFFECTS
+# ============================================================
+
+SAMPLE_RATE = 22050
+
+
+def create_launch_sound():
+
+    samples = array("h")
+    phase = 0
+    sample_count = int(SAMPLE_RATE * 0.32)
+
+    for i in range(sample_count):
+
+        progress = i / sample_count
+        frequency = 350 + 1000 * progress
+        phase += 2 * math.pi * frequency / SAMPLE_RATE
+        envelope = (1 - progress) ** 1.5 * min(1, progress * 12)
+        value = (
+            math.sin(phase)
+            + 0.25 * math.sin(phase * 2)
+        ) * envelope * 0.35
+
+        samples.append(int(value * 32767))
+
+    return pygame.mixer.Sound(buffer=samples.tobytes())
+
+
+def create_explosion_sound():
+
+    samples = array("h")
+    noise = random.Random(42)
+    filtered_noise = 0
+    phase = 0
+    sample_count = int(SAMPLE_RATE * 0.6)
+
+    for i in range(sample_count):
+
+        progress = i / sample_count
+        envelope = (1 - progress) ** 2.4
+        filtered_noise = (
+            filtered_noise * 0.72
+            + noise.uniform(-1, 1) * 0.28
+        )
+        frequency = 90 - 45 * progress
+        phase += 2 * math.pi * frequency / SAMPLE_RATE
+        value = (
+            filtered_noise * 0.8
+            + math.sin(phase) * 0.7
+        ) * envelope * 0.65
+
+        samples.append(int(value * 32767))
+
+    return pygame.mixer.Sound(buffer=samples.tobytes())
+
+
+launch_sound = None
+explosion_sound = None
+
+if pygame.mixer.get_init() is not None:
+
+    launch_sound = create_launch_sound()
+    launch_sound.set_volume(0.35)
+
+    explosion_sound = create_explosion_sound()
+    explosion_sound.set_volume(0.5)
+
+else:
+
+    print("Audio is unavailable; fireworks will run without sound.")
 
 # ============================================================
 # COLORS
@@ -583,6 +662,9 @@ def create_double_explosion(x, y, color):
 
 def explode(rocket):
 
+    if explosion_sound is not None:
+        explosion_sound.play()
+
     x = rocket.x
     y = rocket.y
     color = rocket.color
@@ -676,6 +758,9 @@ def create_secondary_explosion(particle):
 # ============================================================
 
 def launch_firework(x=None):
+
+    if launch_sound is not None:
+        launch_sound.play()
 
     rockets.append(
         Rocket(x)
