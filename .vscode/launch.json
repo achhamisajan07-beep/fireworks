@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Fireworks",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/fireworks.py",
+            "console": "integratedTerminal"
+        }
+    ]
+}
